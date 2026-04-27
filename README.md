@@ -1,5 +1,10 @@
 # Ranked Choice Vote
 
+[![License: PolyForm Noncommercial 1.0.0](https://img.shields.io/badge/License-PolyForm_Noncommercial_1.0.0-blue.svg)](https://polyformproject.org/licenses/noncommercial/1.0.0)
+[![Next.js](https://img.shields.io/badge/Next.js-15-black?logo=next.js)](https://nextjs.org/)
+[![Convex](https://img.shields.io/badge/Convex-Backend-6134a3?logo=convex)](https://convex.dev/)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-4.0-38B2AC?logo=tailwind-css)](https://tailwindcss.com/)
+
 A robust, real-time web application for creating and participating in ranked-choice polls. Built with **Next.js**, **Convex**, and **Tailwind CSS**.
 
 ## Overview
@@ -8,11 +13,11 @@ Ranked Choice Voting (RCV) allows voters to rank candidates in order of preferen
 This application provides a seamless interface to create these polls, share them with a unique link, and visualize the elimination rounds in real-time.
 
 ## Key Features
-- 🗳️ **Intuitive Ranking UI**: Easy drag-and-drop style ranking for voters.
-- 📊 **Dynamic Results**: Automatic calculation of Instant-Runoff rounds with visual progress.
-- 🔄 **Editable Votes**: Secure voter identification via local storage allows users to refine their choices.
-- 📅 **Deadline Management**: Polls automatically expire and are cleaned up after a grace period.
-- 📱 **Responsive Design**: Fully functional on desktop and mobile devices.
+- **Intuitive Ranking UI**: Easy drag-and-drop style ranking for voters.
+- **Dynamic Results**: Automatic calculation of Instant-Runoff rounds with visual progress.
+- **Editable Votes**: Secure voter identification via local storage allows users to refine their choices.
+- **Deadline Management**: Polls automatically expire and are cleaned up after a grace period.
+- **Responsive Design**: Fully functional on desktop and mobile devices.
 
 ## Tech Stack
 - **Framework**: [Next.js 15 (App Router)](https://nextjs.org/)
