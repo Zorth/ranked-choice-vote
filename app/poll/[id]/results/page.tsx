@@ -36,7 +36,7 @@ export default function ResultsPage() {
   const finalRanking: number[] = [];
 
   // Deep copy of ballots to manipulate
-  let currentBallots = votes.map(v => [...v.rankings]);
+  const currentBallots = votes.map(v => [...v.rankings]);
 
   while (eliminatedOptions.size < totalOptions) {
     const tallies: Record<number, number> = {};
@@ -63,12 +63,7 @@ export default function ResultsPage() {
     const minVotes = Math.min(...Object.values(tallies));
     
     // Check if someone has more than 50%
-    const totalVotesInRound = Object.values(tallies).reduce((a, b) => a + b, 0);
-    const winnerIdx = remainingOptions.find(opt => tallies[opt] > totalVotesInRound / 2);
-
-    // If there's a winner with > 50%, they win. But we continue until all ranked.
-    // Actually, usually RCV stops when someone has > 50%. 
-    // The prompt says "All options with the lowest votes are removed... Now number 2 gets tallied, and it repeats."
+    // const totalVotesInRound = Object.values(tallies).reduce((a, b) => a + b, 0);
     
     const optionsWithMinVotes = remainingOptions.filter(opt => tallies[opt] === minVotes);
     

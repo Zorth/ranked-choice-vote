@@ -27,7 +27,7 @@ export default function Home() {
   const [isOpen, setIsOpen] = useState(false);
   const [title, setTitle] = useState("");
   const [options, setOptions] = useState(["", ""]);
-  const [deadline, setDeadline] = useState<Date | undefined>(new Date(Date.now() + 7 * 24 * 60 * 60 * 1000));
+  const [deadline, setDeadline] = useState<Date | undefined>(() => new Date(Date.now() + 7 * 24 * 60 * 60 * 1000));
   const [createdPollId, setCreatedPollId] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
 
@@ -76,7 +76,7 @@ export default function Home() {
       <div className="z-10 max-w-5xl w-full items-center justify-between font-mono text-sm flex flex-col gap-8">
         <h1 className="text-4xl font-bold tracking-tight">Ranked Choice Voting</h1>
         <p className="text-xl text-muted-foreground text-center max-w-prose">
-          Create fair polls where everyone's preference counts.
+          Create fair polls where everyone&apos;s preference counts.
         </p>
 
         <Dialog open={isOpen} onOpenChange={(open) => {

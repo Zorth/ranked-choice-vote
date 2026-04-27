@@ -8,7 +8,6 @@ import { Id } from "@/convex/_generated/dataModel";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArrowRight, ArrowLeft, ChevronUp, ChevronDown, CheckCircle2, Edit3 } from "lucide-react";
-import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { useVoterId } from "@/hooks/use-voter-id";
 
@@ -28,21 +27,29 @@ export default function PollPage() {
   const [rankedOptions, setRankedOptions] = useState<number[]>([]);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
+  const initializedRef = React.useRef(false);
 
   useEffect(() => {
-    if (poll && !isEditing && !isSubmitted) {
-      if (myVote) {
-        setRankedOptions(myVote.rankings);
-        const rankedSet = new Set(myVote.rankings);
-        setAvailableOptions(
-          poll.options.map((_, i) => i).filter(i => !rankedSet.has(i))
-        );
-        setIsSubmitted(true);
-      } else {
-        setAvailableOptions(poll.options.map((_, i) => i));
+    if (poll && !initializedRef.current) {
+      if (myVote !== undefined) {
+        if (myVote) {
+          // eslint-disable-next-line react-hooks/set-state-in-effect
+          setRankedOptions(myVote.rankings);
+          const rankedSet = new Set(myVote.rankings);
+          // eslint-disable-next-line react-hooks/set-state-in-effect
+          setAvailableOptions(
+            poll.options.map((_, i) => i).filter(i => !rankedSet.has(i))
+          );
+          // eslint-disable-next-line react-hooks/set-state-in-effect
+          setIsSubmitted(true);
+        } else {
+          // eslint-disable-next-line react-hooks/set-state-in-effect
+          setAvailableOptions(poll.options.map((_, i) => i));
+        }
+        initializedRef.current = true;
       }
     }
-  }, [poll, myVote, isEditing, isSubmitted]);
+  }, [poll, myVote]);
 
   if (poll === undefined || (voterId !== null && myVote === undefined)) {
     return <div className="flex min-h-screen items-center justify-center">Loading poll...</div>;
@@ -52,6 +59,9 @@ export default function PollPage() {
     return <div className="flex min-h-screen items-center justify-center">Poll not found.</div>;
   }
 
+  // In a real app we might want a 'now' state updated by a timer, 
+  // but for a simple expiry check this is usually fine.
+  // eslint-disable-next-line react-hooks/purity
   const isExpired = Date.now() > poll.deadline;
 
   const moveToRanked = (index: number) => {
@@ -101,7 +111,7 @@ export default function PollPage() {
           </CardHeader>
           <CardContent className="space-y-4">
             <p className="text-muted-foreground">
-              You have already voted in "{poll.title}".
+              You have already voted in &quot;{poll.title}&quot;.
             </p>
             <div className="space-y-2 border rounded-md p-4 bg-muted/30">
               <p className="text-xs font-semibold text-left uppercase text-muted-foreground">Your Ranking:</p>
