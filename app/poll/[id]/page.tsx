@@ -7,7 +7,7 @@ import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowRight, ArrowLeft, ChevronUp, ChevronDown, CheckCircle2, Edit3 } from "lucide-react";
+import { ArrowRight, ArrowLeft, ChevronUp, ChevronDown, CheckCircle2, Edit3, Copy, Check } from "lucide-react";
 import { format } from "date-fns";
 import { useVoterId } from "@/hooks/use-voter-id";
 
@@ -27,6 +27,7 @@ export default function PollPage() {
   const [rankedOptions, setRankedOptions] = useState<number[]>([]);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
+  const [copied, setCopied] = useState(false);
   const initializedRef = useRef(false);
 
   useEffect(() => {
@@ -51,6 +52,17 @@ export default function PollPage() {
     }
   }, [poll, myVote]);
 
+  // In a real app we might want a 'now' state updated by a timer, 
+  // but for a simple expiry check this is usually fine.
+  // eslint-disable-next-line react-hooks/purity
+  const isExpired = Date.now() > (poll?.deadline ?? 0);
+
+  useEffect(() => {
+    if (poll && isExpired) {
+      router.replace(`/poll/${pollId}/results`);
+    }
+  }, [poll, isExpired, pollId, router]);
+
   if (poll === undefined || (voterId !== null && myVote === undefined)) {
     return <div className="flex min-h-screen items-center justify-center">Loading poll...</div>;
   }
@@ -59,10 +71,11 @@ export default function PollPage() {
     return <div className="flex min-h-screen items-center justify-center">Poll not found.</div>;
   }
 
-  // In a real app we might want a 'now' state updated by a timer, 
-  // but for a simple expiry check this is usually fine.
-  // eslint-disable-next-line react-hooks/purity
-  const isExpired = Date.now() > poll.deadline;
+  const copyUrl = () => {
+    navigator.clipboard.writeText(window.location.href);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
 
   const moveToRanked = (index: number) => {
     setAvailableOptions(availableOptions.filter((i) => i !== index));
@@ -141,8 +154,28 @@ export default function PollPage() {
   return (
     <main className="flex min-h-screen flex-col items-center p-8 pt-20">
       <div className="max-w-4xl w-full space-y-8">
+        <div className="flex flex-col md:flex-row justify-between items-center bg-muted/50 p-6 rounded-xl border border-primary/20 gap-4">
+          <div className="flex flex-col text-center md:text-left overflow-hidden w-full">
+            <span className="text-sm font-bold uppercase tracking-widest text-primary mb-1">Share with voters</span>
+            <span className="text-xs text-muted-foreground truncate font-mono">
+              {typeof window !== "undefined" ? window.location.href : ""}
+            </span>
+          </div>
+          <Button size="lg" onClick={copyUrl} className="min-w-[200px] h-14 text-lg shadow-lg hover:shadow-primary/20 transition-all">
+            {copied ? (
+              <>
+                <Check className="mr-2 h-6 w-6" /> Copied!
+              </>
+            ) : (
+              <>
+                <Copy className="mr-2 h-6 w-6" /> Copy Poll Link
+              </>
+            )}
+          </Button>
+        </div>
+        
         <div className="flex justify-end">
-          <Button variant="ghost" size="sm" onClick={() => router.push("/")} className="text-muted-foreground">
+          <Button variant="ghost" size="sm" onClick={() => router.push("/")} className="text-muted-foreground italic">
             Create Another Poll
           </Button>
         </div>

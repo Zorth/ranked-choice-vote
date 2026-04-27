@@ -60,7 +60,7 @@ export default function Home() {
       options: options.map((o) => o.trim()),
       deadline: finalDeadline.getTime(),
     });
-    setCreatedPollId(id);
+    router.push(`/poll/${id}`);
   };
 
   const pollUrl = createdPollId ? `${window.location.origin}/poll/${createdPollId}` : "";
