@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
@@ -27,7 +27,7 @@ export default function PollPage() {
   const [rankedOptions, setRankedOptions] = useState<number[]>([]);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
-  const initializedRef = React.useRef(false);
+  const initializedRef = useRef(false);
 
   useEffect(() => {
     if (poll && !initializedRef.current) {
