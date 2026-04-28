@@ -2,8 +2,9 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { useMutation } from "convex/react";
+import { useMutation, useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
+import { Id } from "@/convex/_generated/dataModel";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -14,7 +15,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Plus, Trash2, Calendar as CalendarIcon } from "lucide-react";
+import { Plus, Trash2, Calendar as CalendarIcon, History, ExternalLink } from "lucide-react";
 import { format, addMonths, isAfter } from "date-fns";
 import { Calendar } from "@/components/ui/calendar";
 import {
@@ -23,9 +24,16 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
+import { useMyPolls } from "@/hooks/use-my-polls";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export default function Home() {
   const router = useRouter();
+  const { createdPolls, votedPolls, addCreatedPoll } = useMyPolls();
+  
+  const allMyPollIds = Array.from(new Set([...createdPolls, ...votedPolls])) as Id<"polls">[];
+  const myPollsData = useQuery(api.polls.getByIds, { ids: allMyPollIds });
+
   const [isOpen, setIsOpen] = useState(false);
   const [title, setTitle] = useState("");
   const [options, setOptions] = useState(["", ""]);
@@ -60,16 +68,19 @@ export default function Home() {
       options: options.map((o) => o.trim()),
       deadline: finalDeadline.getTime(),
     });
+    addCreatedPoll(id);
     router.push(`/poll/${id}`);
   };
 
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center p-24">
-      <div className="z-10 max-w-5xl w-full items-center justify-between font-mono text-sm flex flex-col gap-8">
-        <h1 className="text-4xl font-bold tracking-tight">Ranked Choice Voting</h1>
-        <p className="text-xl text-muted-foreground text-center max-w-prose">
-          Create fair polls where everyone&apos;s preference counts.
-        </p>
+    <main className="flex min-h-screen flex-col items-center p-8 pt-24 md:p-24">
+      <div className="z-10 max-w-5xl w-full items-center justify-between font-mono text-sm flex flex-col gap-12">
+        <div className="text-center space-y-4">
+          <h1 className="text-5xl font-extrabold tracking-tighter">Ranked Choice Voting</h1>
+          <p className="text-xl text-muted-foreground max-w-prose mx-auto">
+            Create fair polls where everyone&apos;s preference counts.
+          </p>
+        </div>
 
         <Dialog open={isOpen} onOpenChange={(open) => {
           setIsOpen(open);
@@ -80,8 +91,8 @@ export default function Home() {
           }
         }}>
           <DialogTrigger asChild>
-            <Button size="lg" className="px-8 h-14 text-lg">
-              Create New Poll
+            <Button size="lg" className="px-12 h-16 text-xl shadow-xl hover:shadow-primary/20 transition-all">
+              <Plus className="mr-2 h-6 w-6" /> Create New Poll
             </Button>
           </DialogTrigger>
           <DialogContent className="sm:max-w-[425px]">
@@ -155,9 +166,6 @@ export default function Home() {
                     />
                   </PopoverContent>
                 </Popover>
-                <p className="text-[10px] text-muted-foreground">
-                  Max 1 month in the future. Polls are deleted 1 month after deadline.
-                </p>
               </div>
               <Button onClick={handleCreate} disabled={!title || options.some(o => !o.trim())}>
                 Create Poll
@@ -165,6 +173,43 @@ export default function Home() {
             </div>
           </DialogContent>
         </Dialog>
+
+        {allMyPollIds.length > 0 && (
+          <div className="w-full max-w-2xl space-y-6">
+            <div className="flex items-center gap-2 border-b pb-2">
+              <History className="h-5 w-5 text-muted-foreground" />
+              <h2 className="text-xl font-bold">Your Recent Polls</h2>
+            </div>
+            
+            <div className="grid gap-4">
+              {myPollsData === undefined ? (
+                <div className="text-center py-8 text-muted-foreground italic">Loading your history...</div>
+              ) : myPollsData.length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground italic">No polls found in your history.</div>
+              ) : (
+                myPollsData.sort((a, b) => b.createdAt - a.createdAt).map((poll) => (
+                  <Card key={poll._id} className="hover:border-primary/50 transition-colors cursor-pointer" onClick={() => router.push(`/poll/${poll._id}`)}>
+                    <CardHeader className="p-4 flex flex-row items-center justify-between space-y-0">
+                      <div className="space-y-1">
+                        <CardTitle className="text-lg">{poll.title}</CardTitle>
+                        <div className="flex items-center gap-3 text-xs text-muted-foreground font-sans">
+                          <span>{poll.options.length} options</span>
+                          <span>•</span>
+                          <span>{createdPolls.includes(poll._id) ? "Created by you" : "Voted by you"}</span>
+                          <span>•</span>
+                          <span className={Date.now() > poll.deadline ? "text-destructive font-bold" : ""}>
+                            {Date.now() > poll.deadline ? "Expired" : `Ends ${format(poll.deadline, "MMM d")}`}
+                          </span>
+                        </div>
+                      </div>
+                      <ExternalLink className="h-4 w-4 text-muted-foreground" />
+                    </CardHeader>
+                  </Card>
+                ))
+              )}
+            </div>
+          </div>
+        )}
       </div>
     </main>
   );

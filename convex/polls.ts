@@ -25,8 +25,18 @@ export const get = query({
   },
 });
 
-// For cleanup, though we can't easily trigger crons without a paid plan/specific setup, 
-// we can implement a mutation that deletes old polls.
+export const getByIds = query({
+  args: { ids: v.array(v.id("polls")) },
+  handler: async (ctx, args) => {
+    const polls = [];
+    for (const id of args.ids) {
+      const poll = await ctx.db.get(id);
+      if (poll) polls.push(poll);
+    }
+    return polls;
+  },
+});
+
 export const deleteOldPolls = mutation({
   args: {},
   handler: async (ctx) => {
@@ -38,7 +48,6 @@ export const deleteOldPolls = mutation({
       .collect();
 
     for (const poll of expiredPolls) {
-      // Delete associated votes first
       const votes = await ctx.db
         .query("votes")
         .withIndex("by_pollId", (q) => q.eq("pollId", poll._id))

@@ -10,12 +10,14 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArrowRight, ArrowLeft, ChevronUp, ChevronDown, CheckCircle2, Edit3, Copy, Check } from "lucide-react";
 import { format } from "date-fns";
 import { useVoterId } from "@/hooks/use-voter-id";
+import { useMyPolls } from "@/hooks/use-my-polls";
 
 export default function PollPage() {
   const params = useParams();
   const router = useRouter();
   const pollId = params.id as Id<"polls">;
   const voterId = useVoterId();
+  const { addVotedPoll } = useMyPolls();
   
   const poll = useQuery(api.polls.get, { id: pollId });
   const myVote = useQuery(api.votes.getMyVote, 
@@ -29,6 +31,12 @@ export default function PollPage() {
   const [isEditing, setIsEditing] = useState(false);
   const [copied, setCopied] = useState(false);
   const initializedRef = useRef(false);
+
+  useEffect(() => {
+    if (poll) {
+      addVotedPoll(pollId);
+    }
+  }, [poll, pollId, addVotedPoll]);
 
   useEffect(() => {
     if (poll && !initializedRef.current) {
@@ -108,6 +116,7 @@ export default function PollPage() {
       voterId,
       rankings: rankedOptions,
     });
+    addVotedPoll(pollId);
     setIsSubmitted(true);
     setIsEditing(false);
   };
