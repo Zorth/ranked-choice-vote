@@ -30,6 +30,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 export default function Home() {
   const router = useRouter();
   const { createdPolls, votedPolls, addCreatedPoll } = useMyPolls();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
   
   const allMyPollIds = Array.from(new Set([...createdPolls, ...votedPolls])) as Id<"polls">[];
   const myPollsData = useQuery(api.polls.getByIds, { ids: allMyPollIds });
@@ -37,7 +42,13 @@ export default function Home() {
   const [isOpen, setIsOpen] = useState(false);
   const [title, setTitle] = useState("");
   const [options, setOptions] = useState(["", ""]);
-  const [deadline, setDeadline] = useState<Date | undefined>(() => new Date(Date.now() + 7 * 24 * 60 * 60 * 1000));
+  const [deadline, setDeadline] = useState<Date | undefined>();
+
+  useEffect(() => {
+    if (!deadline) {
+      setDeadline(new Date(Date.now() + 7 * 24 * 60 * 60 * 1000));
+    }
+  }, [deadline]);
 
   const createPoll = useMutation(api.polls.create);
 
@@ -174,7 +185,7 @@ export default function Home() {
           </DialogContent>
         </Dialog>
 
-        {allMyPollIds.length > 0 && (
+        {mounted && allMyPollIds.length > 0 && (
           <div className="w-full max-w-2xl space-y-6">
             <div className="flex items-center gap-2 border-b pb-2">
               <History className="h-5 w-5 text-muted-foreground" />
@@ -187,25 +198,28 @@ export default function Home() {
               ) : myPollsData.length === 0 ? (
                 <div className="text-center py-8 text-muted-foreground italic">No polls found in your history.</div>
               ) : (
-                myPollsData.sort((a, b) => b.createdAt - a.createdAt).map((poll) => (
-                  <Card key={poll._id} className="hover:border-primary/50 transition-colors cursor-pointer" onClick={() => router.push(`/poll/${poll._id}`)}>
-                    <CardHeader className="p-4 flex flex-row items-center justify-between space-y-0">
-                      <div className="space-y-1">
-                        <CardTitle className="text-lg">{poll.title}</CardTitle>
-                        <div className="flex items-center gap-3 text-xs text-muted-foreground font-sans">
-                          <span>{poll.options.length} options</span>
-                          <span>•</span>
-                          <span>{createdPolls.includes(poll._id) ? "Created by you" : "Voted by you"}</span>
-                          <span>•</span>
-                          <span className={Date.now() > poll.deadline ? "text-destructive font-bold" : ""}>
-                            {Date.now() > poll.deadline ? "Expired" : `Ends ${format(poll.deadline, "MMM d")}`}
-                          </span>
+                myPollsData.sort((a, b) => b.createdAt - a.createdAt).map((poll) => {
+                  const isPollExpired = Date.now() > poll.deadline;
+                  return (
+                    <Card key={poll._id} className="hover:border-primary/50 transition-colors cursor-pointer" onClick={() => router.push(`/poll/${poll._id}`)}>
+                      <CardHeader className="p-4 flex flex-row items-center justify-between space-y-0">
+                        <div className="space-y-1">
+                          <CardTitle className="text-lg">{poll.title}</CardTitle>
+                          <div className="flex items-center gap-3 text-xs text-muted-foreground font-sans">
+                            <span>{poll.options.length} options</span>
+                            <span>•</span>
+                            <span>{createdPolls.includes(poll._id) ? "Created by you" : "Voted by you"}</span>
+                            <span>•</span>
+                            <span className={isPollExpired ? "text-destructive font-bold" : ""}>
+                              {isPollExpired ? "Expired" : `Ends ${format(poll.deadline, "MMM d")}`}
+                            </span>
+                          </div>
                         </div>
-                      </div>
-                      <ExternalLink className="h-4 w-4 text-muted-foreground" />
-                    </CardHeader>
-                  </Card>
-                ))
+                        <ExternalLink className="h-4 w-4 text-muted-foreground" />
+                      </CardHeader>
+                    </Card>
+                  );
+                })
               )}
             </div>
           </div>

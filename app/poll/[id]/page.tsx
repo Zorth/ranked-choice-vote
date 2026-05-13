@@ -30,7 +30,12 @@ export default function PollPage() {
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const initializedRef = useRef(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     if (poll) {
@@ -71,7 +76,7 @@ export default function PollPage() {
     }
   }, [poll, isExpired, pollId, router]);
 
-  if (poll === undefined || (voterId !== null && myVote === undefined)) {
+  if (!mounted || poll === undefined || (voterId !== null && myVote === undefined)) {
     return <div className="flex min-h-screen items-center justify-center">Loading poll...</div>;
   }
 
